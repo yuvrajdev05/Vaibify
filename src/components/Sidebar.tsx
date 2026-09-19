@@ -57,10 +57,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         onClick={() => onNavigate('/')}
         className="flex items-center gap-3 cursor-pointer group pb-6"
       >
-        <div className="relative w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-rose-500 p-0.5 shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-all">
-          <div className="w-full h-full bg-neutral-950 rounded-[14px] flex items-center justify-center">
-            <Music2 className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-          </div>
+        <div className="relative w-10 h-10 rounded-2xl overflow-hidden shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-all border border-neutral-800 shrink-0">
+          <img src="/logo.png" alt="Vaibify" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
         </div>
 
         <div>

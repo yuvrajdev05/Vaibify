@@ -13,7 +13,23 @@ import {
   normalizeSong,
 } from '../utils/normalize';
 
-const API_BASE = '/api/music';
+const RENDER_BACKEND_ORIGIN = 'https://vaibify.onrender.com';
+
+export const getApiBase = (): string => {
+  if (typeof window !== 'undefined') {
+    const isCapacitor = (window as any).Capacitor !== undefined || !!(window as any).VaibifyNativeAudio;
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isFile = window.location.protocol === 'file:';
+
+    // When running inside the Android Capacitor app, route API calls to the live Render backend
+    if (isCapacitor || isFile || (isLocalhost && !window.location.port.includes('5173'))) {
+      return `${RENDER_BACKEND_ORIGIN}/api/music`;
+    }
+  }
+  return '/api/music';
+};
+
+const API_BASE = getApiBase();
 
 class MusicApiService {
   /**

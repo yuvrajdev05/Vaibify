@@ -80,46 +80,59 @@ export const Home: React.FC<HomeProps> = ({ onNavigate, onAddToPlaylist }) => {
   return (
     <div className="space-y-10 pb-16 animate-in fade-in duration-300">
       {/* Hero Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-cyan-950/60 via-indigo-950/40 to-neutral-900 border border-neutral-800/80 p-6 sm:p-10 shadow-2xl">
-        <div className="relative z-10 max-w-2xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>VAIBIFY Music Stream Active</span>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-900 via-indigo-950/40 to-neutral-950 border border-neutral-800/80 p-6 sm:p-10 shadow-2xl backdrop-blur-xl">
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="max-w-xl space-y-4 text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-semibold">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>VAIBIFY Music Stream Active</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
+              {getGreeting()} <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-300 to-purple-400">• Find Your Vibe</span>
+            </h1>
+
+            <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">
+              Stream unlimited high-definition music, tune into mood-driven vibe mixes, and enjoy seamless background playback with screen off.
+            </p>
+
+            <div className="pt-2 flex flex-wrap items-center gap-3">
+              {trending.length > 0 && (
+                <button
+                  onClick={() => playQueue(trending, 0)}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-semibold text-sm shadow-lg shadow-cyan-500/25 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
+                >
+                  <Play className="w-4 h-4 fill-white" />
+                  Play Trending
+                </button>
+              )}
+
+              <button
+                onClick={() => onNavigate('/search')}
+                className="px-5 py-2.5 rounded-xl bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-700/80 text-neutral-200 font-semibold text-sm flex items-center gap-2 transition-all cursor-pointer"
+              >
+                <Search className="w-4 h-4 text-cyan-400" />
+                Quick Search
+              </button>
+            </div>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
-            {getGreeting()} <span className="text-cyan-400">• Find Your Vibe</span>
-          </h1>
-
-          <p className="text-neutral-400 text-sm sm:text-base leading-relaxed">
-            Stream any track, tune into mood-driven vibe mixes, and discover new sounds with
-            instant recommendations and real-time playback.
-          </p>
-
-          <div className="pt-2 flex flex-wrap items-center gap-3">
-            {trending.length > 0 && (
-              <button
-                onClick={() => playQueue(trending, 0)}
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-sm shadow-lg shadow-cyan-500/25 flex items-center gap-2 transition-all hover:scale-105 active:scale-95 cursor-pointer"
-              >
-                <Play className="w-4 h-4 fill-white" />
-                Play Trending
-              </button>
-            )}
-
-            <button
-              onClick={() => onNavigate('/search')}
-              className="px-5 py-2.5 rounded-xl bg-neutral-900/80 hover:bg-neutral-800 border border-neutral-700/80 text-neutral-200 font-semibold text-sm flex items-center gap-2 transition-all cursor-pointer"
-            >
-              <Search className="w-4 h-4 text-cyan-400" />
-              Quick Search
-            </button>
+          {/* Hero Featured Artwork */}
+          <div className="shrink-0 relative group">
+            <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 rounded-3xl blur-xl opacity-50 group-hover:opacity-75 transition duration-500" />
+            <div className="relative w-36 h-36 sm:w-48 sm:h-48 rounded-2xl overflow-hidden border border-neutral-700/80 shadow-2xl bg-neutral-900">
+              <img
+                src="/wallpaper.png"
+                alt="VAIBIFY"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
           </div>
         </div>
 
         {/* Ambient subtle decorative blur */}
         <div className="absolute -right-16 -top-16 w-80 h-80 bg-cyan-500/10 rounded-full filter blur-3xl pointer-events-none" />
-        <div className="absolute -right-8 -bottom-8 w-60 h-60 bg-indigo-500/10 rounded-full filter blur-3xl pointer-events-none" />
+        <div className="absolute -right-8 -bottom-8 w-60 h-60 bg-purple-500/10 rounded-full filter blur-3xl pointer-events-none" />
       </div>
 
       {/* VAIBIFY Vibe Engine */}

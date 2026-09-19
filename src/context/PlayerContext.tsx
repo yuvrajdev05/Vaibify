@@ -9,6 +9,7 @@ import React, {
 import { NormalizedSong, RepeatMode } from '../types';
 import { storage } from '../utils/storage';
 import { useToast } from './ToastContext';
+import { nativeAudioBridge } from '../services/nativeAudioBridge';
 
 declare global {
   interface Window {
@@ -16,6 +17,18 @@ declare global {
     onYouTubeIframeAPIReady: () => void;
   }
 }
+
+const STREAM_API_BASE = (() => {
+  if (typeof window !== 'undefined') {
+    const isCapacitor = (window as any).Capacitor !== undefined || !!(window as any).VaibifyNativeAudio;
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const isFile = window.location.protocol === 'file:';
+    if (isCapacitor || isFile || (isLocalhost && !window.location.port.includes('5173'))) {
+      return 'https://vaibify.onrender.com';
+    }
+  }
+  return '';
+})();
 
 interface PlayerContextType {
   currentSong: NormalizedSong | null;
@@ -93,6 +106,58 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsCurrentLiked(false);
     }
   }, [currentSong]);
+
+  // Connect to native Android MediaSessionService and listen for events
+  useEffect(() => {
+    if (!nativeAudioBridge.isNativeAndroid()) return;
+
+    // Sync state if already playing in background service
+    nativeAudioBridge.getPlaybackState().then((state) => {
+      if (state && (state.isPlaying || state.currentSong)) {
+        if (state.currentSong) setCurrentSong(state.currentSong);
+        if (state.queue && state.queue.length > 0) setQueue(state.queue);
+        if (typeof state.currentIndex === 'number' && state.currentIndex >= 0) {
+          setCurrentIndex(state.currentIndex);
+        }
+        setIsPlaying(Boolean(state.isPlaying));
+        setIsBuffering(Boolean(state.isBuffering));
+        if (typeof state.position === 'number') setProgress(state.position);
+        if (typeof state.duration === 'number' && state.duration > 0) setDuration(state.duration);
+        if (state.repeatMode) setRepeatModeState(state.repeatMode);
+        if (typeof state.shuffle === 'boolean') setShuffleState(state.shuffle);
+        if (typeof state.volume === 'number') setVolumeState(state.volume);
+      }
+    });
+
+    const unsubState = nativeAudioBridge.onPlaybackStateChanged((playing, buffering, pos, dur) => {
+      setIsPlaying(playing);
+      setIsBuffering(buffering);
+      setProgress(pos);
+      if (dur > 0) setDuration(dur);
+    });
+
+    const unsubTrack = nativeAudioBridge.onTrackChanged((song, idx) => {
+      if (song) {
+        setCurrentSong(song);
+        setCurrentIndex(idx);
+        setProgress(0);
+        if (song.duration) setDuration(song.duration);
+      }
+    });
+
+    const unsubQueue = nativeAudioBridge.onQueueUpdated((newQueue, idx) => {
+      if (newQueue && newQueue.length > 0) {
+        setQueue(newQueue);
+        setCurrentIndex(idx);
+      }
+    });
+
+    return () => {
+      unsubState();
+      unsubTrack();
+      unsubQueue();
+    };
+  }, []);
 
   // Load YouTube IFrame API script once
   useEffect(() => {
@@ -245,6 +310,30 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setProgress(0);
       setDuration(song.duration || 0);
 
+      // Route through native Media3 ExoPlayer background service on Android
+      if (nativeAudioBridge.isNativeAndroid()) {
+        setAudioSourceType('stream');
+        setIsPlaying(true);
+        if (song.streamUrl) {
+          nativeAudioBridge.play(song, queue, currentIndex);
+        } else {
+          // Asynchronously resolve stream if needed
+          fetch(`${STREAM_API_BASE}/api/music/stream/${encodeURIComponent(song.videoId || song.id)}`)
+            .then((r) => r.json())
+            .then((res) => {
+              const streamUrl = res?.directStreamUrl || `https://music.artistbots.workers.dev/download?id=${song.videoId || song.id}&api_key=ArtistbotsNGDYfcU`;
+              const resolved = { ...song, streamUrl };
+              setCurrentSong(resolved);
+              nativeAudioBridge.play(resolved, queue, currentIndex);
+            })
+            .catch(() => {
+              const fallback = { ...song, streamUrl: `https://music.artistbots.workers.dev/download?id=${song.videoId || song.id}&api_key=ArtistbotsNGDYfcU` };
+              nativeAudioBridge.play(fallback, queue, currentIndex);
+            });
+        }
+        return;
+      }
+
       // Determine audio source: direct stream URL vs YouTube videoId
       if (song.streamUrl) {
         setAudioSourceType('stream');
@@ -304,7 +393,7 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         }
       }
     },
-    [volume, isMuted]
+    [volume, isMuted, queue, currentIndex]
   );
 
   // Play a specific song and optionally replace or append queue
@@ -329,6 +418,33 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       setQueue(targetQueue);
       setCurrentIndex(targetIndex);
+
+      if (nativeAudioBridge.isNativeAndroid()) {
+        setCurrentSong(song);
+        setProgress(0);
+        setDuration(song.duration || 0);
+        setIsPlaying(true);
+        setAudioSourceType('stream');
+
+        if (song.streamUrl) {
+          nativeAudioBridge.play(song, targetQueue, targetIndex);
+        } else {
+          fetch(`${STREAM_API_BASE}/api/music/stream/${encodeURIComponent(song.videoId || song.id)}`)
+            .then((r) => r.json())
+            .then((res) => {
+              const streamUrl = res?.directStreamUrl || `https://music.artistbots.workers.dev/download?id=${song.videoId || song.id}&api_key=ArtistbotsNGDYfcU`;
+              const resolved = { ...song, streamUrl };
+              setCurrentSong(resolved);
+              nativeAudioBridge.play(resolved, targetQueue, targetIndex);
+            })
+            .catch(() => {
+              const fallback = { ...song, streamUrl: `https://music.artistbots.workers.dev/download?id=${song.videoId || song.id}&api_key=ArtistbotsNGDYfcU` };
+              nativeAudioBridge.play(fallback, targetQueue, targetIndex);
+            });
+        }
+        return;
+      }
+
       loadAndPlay(song);
     },
     [queue, loadAndPlay]
@@ -347,20 +463,50 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const rest = songs.filter((_, i) => i !== validIndex);
         const shuffled = [...rest].sort(() => Math.random() - 0.5);
         activeSongs = [selected, ...shuffled];
-        setQueue(activeSongs);
-        setCurrentIndex(0);
-        loadAndPlay(selected);
-      } else {
-        setQueue(songs);
-        setCurrentIndex(validIndex);
-        loadAndPlay(songs[validIndex]);
       }
+
+      setQueue(activeSongs);
+      setCurrentIndex(validIndex);
+
+      if (nativeAudioBridge.isNativeAndroid()) {
+        const startSong = activeSongs[validIndex];
+        setCurrentSong(startSong);
+        setProgress(0);
+        setDuration(startSong.duration || 0);
+        setIsPlaying(true);
+        setAudioSourceType('stream');
+
+        if (startSong.streamUrl) {
+          nativeAudioBridge.playQueue(activeSongs, validIndex);
+        } else {
+          fetch(`${STREAM_API_BASE}/api/music/stream/${encodeURIComponent(startSong.videoId || startSong.id)}`)
+            .then((r) => r.json())
+            .then((res) => {
+              const streamUrl = res?.directStreamUrl || `https://music.artistbots.workers.dev/download?id=${startSong.videoId || startSong.id}&api_key=ArtistbotsNGDYfcU`;
+              const resolved = { ...startSong, streamUrl };
+              const resolvedQueue = [...activeSongs];
+              resolvedQueue[validIndex] = resolved;
+              setCurrentSong(resolved);
+              nativeAudioBridge.playQueue(resolvedQueue, validIndex);
+            })
+            .catch(() => {
+              nativeAudioBridge.playQueue(activeSongs, validIndex);
+            });
+        }
+        return;
+      }
+
+      loadAndPlay(activeSongs[validIndex]);
     },
     [shuffle, loadAndPlay]
   );
 
   const pause = useCallback(() => {
     setIsPlaying(false);
+    if (nativeAudioBridge.isNativeAndroid()) {
+      nativeAudioBridge.pause();
+      return;
+    }
     if (audioSourceType === 'stream' && audioElementRef.current) {
       audioElementRef.current.pause();
     } else if (audioSourceType === 'youtube' && ytPlayerRef.current && ytReadyRef.current) {
@@ -373,6 +519,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const resume = useCallback(() => {
     if (!currentSong) return;
     setIsPlaying(true);
+    if (nativeAudioBridge.isNativeAndroid()) {
+      nativeAudioBridge.resume();
+      return;
+    }
     if (audioSourceType === 'stream' && audioElementRef.current) {
       audioElementRef.current.play().catch(console.warn);
     } else if (audioSourceType === 'youtube' && ytPlayerRef.current && ytReadyRef.current) {
@@ -391,6 +541,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [isPlaying, pause, resume]);
 
   const next = useCallback(() => {
+    if (nativeAudioBridge.isNativeAndroid()) {
+      nativeAudioBridge.next();
+      return;
+    }
     if (queue.length === 0) return;
     if (currentIndex < queue.length - 1) {
       const nextIdx = currentIndex + 1;
@@ -405,6 +559,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [queue, currentIndex, repeatMode, loadAndPlay, showToast]);
 
   const prev = useCallback(() => {
+    if (nativeAudioBridge.isNativeAndroid()) {
+      nativeAudioBridge.previous();
+      return;
+    }
     if (queue.length === 0) return;
     // If progress is greater than 3 seconds, restart current track
     if (progress > 3) {
@@ -425,6 +583,11 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       const clamped = Math.max(0, Math.min(seconds, duration || 9999));
       setProgress(clamped);
 
+      if (nativeAudioBridge.isNativeAndroid()) {
+        nativeAudioBridge.seekTo(clamped);
+        return;
+      }
+
       if (audioSourceType === 'stream' && audioElementRef.current) {
         audioElementRef.current.currentTime = clamped;
       } else if (audioSourceType === 'youtube' && ytPlayerRef.current && ytReadyRef.current) {
@@ -441,6 +604,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setVolumeState(clamped);
     storage.setVolume(clamped);
 
+    if (nativeAudioBridge.isNativeAndroid()) {
+      nativeAudioBridge.setVolume(isMuted ? 0 : clamped);
+    }
+
     if (audioElementRef.current) {
       audioElementRef.current.volume = isMuted ? 0 : clamped;
     }
@@ -455,6 +622,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const nextMuted = !isMuted;
     setIsMutedState(nextMuted);
     storage.setMuted(nextMuted);
+
+    if (nativeAudioBridge.isNativeAndroid()) {
+      nativeAudioBridge.setVolume(nextMuted ? 0 : volume);
+    }
 
     if (audioElementRef.current) {
       audioElementRef.current.volume = nextMuted ? 0 : volume;
@@ -475,6 +646,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const nextShuffle = !shuffle;
     setShuffleState(nextShuffle);
     storage.setShuffle(nextShuffle);
+
+    if (nativeAudioBridge.isNativeAndroid()) {
+      nativeAudioBridge.setShuffle(nextShuffle);
+    }
 
     if (nextShuffle && queue.length > 1) {
       // Reorder upcoming queue songs
@@ -498,6 +673,10 @@ export const PlayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     setRepeatModeState(nextMode);
     storage.setRepeat(nextMode);
+
+    if (nativeAudioBridge.isNativeAndroid()) {
+      nativeAudioBridge.setRepeatMode(nextMode);
+    }
 
     const labels = { off: 'Repeat off', all: 'Repeat all', one: 'Repeat song' };
     showToast(labels[nextMode], 'info');

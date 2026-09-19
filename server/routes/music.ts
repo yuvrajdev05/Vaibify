@@ -124,6 +124,16 @@ router.get('/song/:id', async (req, res) => {
   }
 });
 
+// Stream resolution
+router.get('/stream/:id', async (req, res) => {
+  try {
+    const data = await musicBackend.getDownloadStream(req.params.id);
+    res.json(data);
+  } catch (err: any) {
+    res.status(500).json({ error: err?.message || 'Failed to fetch stream' });
+  }
+});
+
 // Artist details
 router.get('/artist/:id', async (req, res) => {
   try {

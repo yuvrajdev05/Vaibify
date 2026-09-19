@@ -127,7 +127,13 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-neutral-950 text-neutral-100 antialiased overflow-hidden font-sans">
+    <div className="flex h-screen bg-neutral-950 text-neutral-100 antialiased overflow-hidden font-sans relative">
+      {/* Ambient Branded Wallpaper Backdrop */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0 opacity-10 bg-cover bg-center bg-no-repeat filter blur-3xl scale-110"
+        style={{ backgroundImage: `url('/wallpaper.png')` }}
+      />
+
       {/* Desktop Sidebar */}
       <Sidebar
         currentPath={currentPath}
@@ -137,7 +143,7 @@ const MainLayout: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto relative z-10">
         <Header
           currentPath={currentPath}
           onNavigate={navigate}

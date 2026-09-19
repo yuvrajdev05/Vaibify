@@ -1,8 +1,7 @@
 import { NormalizedAlbum, NormalizedArtist, NormalizedSong, Playlist } from '../types';
 import { parseDurationToSeconds } from './formatDuration';
 
-const FALLBACK_THUMBNAIL =
-  'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80';
+const FALLBACK_THUMBNAIL = '/wallpaper.png';
 
 /**
  * Extracts best thumbnail URL from various API shapes

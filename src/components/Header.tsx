@@ -39,10 +39,8 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={() => onNavigate('/')}
           className="flex md:hidden items-center gap-2 cursor-pointer"
         >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 p-0.5 shadow-md">
-            <div className="w-full h-full bg-neutral-950 rounded-[10px] flex items-center justify-center">
-              <Music2 className="w-4 h-4 text-cyan-400" />
-            </div>
+          <div className="w-8 h-8 rounded-xl overflow-hidden shadow-md border border-neutral-800 shrink-0">
+            <img src="/logo.png" alt="Vaibify" className="w-full h-full object-cover" />
           </div>
           <span className="font-extrabold text-sm text-white tracking-wider">
             VAIB<span className="text-cyan-400">IFY</span>

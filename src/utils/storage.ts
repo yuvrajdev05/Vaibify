@@ -26,7 +26,7 @@ const DEFAULT_PLAYLISTS: Playlist[] = [
     description: 'Mellow beats, late-night atmospheric vibes, and acoustic soul.',
     createdAt: Date.now() - 86400000 * 7,
     updatedAt: Date.now() - 86400000 * 2,
-    thumbnail: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=600&auto=format&fit=crop&q=80',
+    thumbnail: '/wallpaper.png',
     songs: [
       {
         id: 's-chill-1',
@@ -34,7 +34,7 @@ const DEFAULT_PLAYLISTS: Playlist[] = [
         artist: 'Aura Collective',
         artistId: 'art-aura',
         album: 'Twilight Horizons',
-        thumbnail: 'https://images.unsplash.com/photo-1518609878373-06d740f60d8b?w=600&auto=format&fit=crop&q=80',
+        thumbnail: '/wallpaper.png',
         duration: 215,
         videoId: 'jfKfPfyJRdk', // lofi hip hop radio
         type: 'song',
@@ -45,7 +45,7 @@ const DEFAULT_PLAYLISTS: Playlist[] = [
         artist: 'Kyoto Soundscape',
         artistId: 'art-kyoto',
         album: 'Neon Reflections',
-        thumbnail: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&auto=format&fit=crop&q=80',
+        thumbnail: '/wallpaper.png',
         duration: 184,
         videoId: '5qap5aO4i9A',
         type: 'song',
@@ -58,7 +58,7 @@ const DEFAULT_PLAYLISTS: Playlist[] = [
     description: 'High BPM, driving basslines, and unstoppable energy for gym sessions.',
     createdAt: Date.now() - 86400000 * 14,
     updatedAt: Date.now() - 86400000 * 3,
-    thumbnail: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80',
+    thumbnail: '/wallpaper.png',
     songs: [
       {
         id: 's-work-1',
@@ -66,7 +66,7 @@ const DEFAULT_PLAYLISTS: Playlist[] = [
         artist: 'Synthwave Ryders',
         artistId: 'art-synth',
         album: 'Overdrive 2099',
-        thumbnail: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&auto=format&fit=crop&q=80',
+        thumbnail: '/wallpaper.png',
         duration: 242,
         videoId: '4xDzrJKXOOY',
         type: 'song',
@@ -170,7 +170,7 @@ export const storage = {
       createdAt: Date.now(),
       updatedAt: Date.now(),
       songs: [],
-      thumbnail: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80',
+      thumbnail: '/wallpaper.png',
     };
 
     const updated = [newPlaylist, ...playlists];

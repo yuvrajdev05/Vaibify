@@ -868,6 +868,27 @@ export const musicBackend = {
   },
 
   /**
+   * Request direct stream or download URL
+   */
+  async getDownloadStream(videoId: string) {
+    const { baseUrl, apiKey } = getMusicBackendConfig();
+    if (!baseUrl) {
+      return { success: false, error: 'MUSIC_API_BASE_URL is not set' };
+    }
+    try {
+      const targetUrl = `${baseUrl}/download?id=${encodeURIComponent(videoId)}&api_key=${encodeURIComponent(apiKey)}`;
+      const res = await fetch(targetUrl, { headers: { 'User-Agent': 'VaibifyBackend/1.0' } });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.url) {
+        return { success: true, directStreamUrl: data.url };
+      }
+      return { success: false, error: data?.error || `HTTP ${res.status}` };
+    } catch (err: any) {
+      return { success: false, error: err?.message || 'Failed to fetch stream' };
+    }
+  },
+
+  /**
    * Artist detail
    */
   async getArtist(id: string) {
