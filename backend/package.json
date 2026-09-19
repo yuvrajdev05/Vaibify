@@ -1,0 +1,19 @@
+{
+  "name": "vaibify-backend",
+  "version": "1.0.0",
+  "description": "VAIBIFY - Find Your Vibe. Production backend service ready for Render deployment.",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": ["music", "streaming", "artistbots", "vaibify", "render"],
+  "author": "VAIBIFY",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}

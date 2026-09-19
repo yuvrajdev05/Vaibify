@@ -1,0 +1,6 @@
+{
+  "name": "VAIBIFY",
+  "description": "Find Your Vibe. Stream any track, explore dynamic vibe mixes, and curate your personal library.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: vaibify-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MUSIC_API_BASE_URL
+        value: https://music.artistbots.workers.dev
+      - key: MUSIC_API_KEY
+        sync: false
